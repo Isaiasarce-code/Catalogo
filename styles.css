@@ -1007,7 +1007,7 @@ footer p {
     cursor: pointer;
 }
 .product:hover {
-    transform: translateY(-4px);
+    transform: translateY(-7px);
     transition: 0.2s ease;
 }
 
