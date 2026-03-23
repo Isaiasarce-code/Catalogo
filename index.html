@@ -159,7 +159,11 @@
                 // Crear el elemento del producto
                 const productElement = document.createElement('article');
                 productElement.className = 'product';
-                
+
+                productElement.style.cursor = 'pointer';
+                productElement.addEventListener('click', () => openImageModal(product));
+
+
                 // Crear contenedor de imagen con placeholder
                 const imageContainer = document.createElement('div');
                 imageContainer.className = 'image-container';
@@ -220,7 +224,7 @@
                 }
                 
                 // Agregar evento click a la imagen para abrir el modal
-                productImage.addEventListener('click', () => openImageModal(product));
+                //productImage.addEventListener('click', () => openImageModal(product));
                 
                 imageContainer.appendChild(imagePlaceholder);
                 imageContainer.appendChild(productImage);
