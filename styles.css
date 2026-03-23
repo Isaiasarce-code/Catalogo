@@ -1003,6 +1003,13 @@ footer p {
     color: white;
     background: #25D366;
 }
+.product {
+    cursor: pointer;
+}
+.product:hover {
+    transform: translateY(-4px);
+    transition: 0.2s ease;
+}
 
 @media (max-width: 768px) {
     .whatsapp-btn {
