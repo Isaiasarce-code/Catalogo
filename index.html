@@ -734,6 +734,17 @@
                     closeOrderSummary();
                 }
             });
+
+            
+            const cartButton = document.getElementById('cartButton');
+            if (cartButton) {
+                cartButton.addEventListener('click', openCart);
+            }
+            
+            const closeCartBtn = document.getElementById('closeCart');
+            if (closeCartBtn) {
+                closeCartBtn.addEventListener('click', closeCart);
+            }
     
             loadCSV();
         });
