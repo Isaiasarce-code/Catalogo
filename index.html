@@ -535,46 +535,72 @@
             const cartItemsContainer = document.getElementById('cartItems');
             const cartCount = document.getElementById('cartCount');
             const cartTotal = document.getElementById('cartTotal');
-    
+        
             cartItemsContainer.innerHTML = '';
-    
+        
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = '<p class="empty-cart">Tu carrito está vacío.</p>';
                 cartCount.textContent = '0';
                 cartTotal.textContent = '0';
                 return;
             }
-    
+        
             let totalGeneral = 0;
             let totalPiezas = 0;
-    
+        
             cart.forEach((item, index) => {
                 totalGeneral += item.total;
                 totalPiezas += item.cantidad;
-    
+        
                 const itemElement = document.createElement('div');
                 itemElement.className = 'cart-item';
-    
+        
                 itemElement.innerHTML = `
                     <h4>${item.nombre}</h4>
                     <p><strong>Presentación:</strong> ${item.gramos}</p>
-                    <p><strong>Cantidad:</strong> ${item.cantidad}</p>
+        
+                    <div class="cart-qty-row">
+                        <span><strong>Cantidad:</strong></span>
+                        <input 
+                            type="number"
+                            min="1"
+                            value="${item.cantidad}"
+                            class="cart-qty-input"
+                            onchange="changeCartQuantity(${index}, this.value)"
+                        >
+                    </div>
+        
                     <p><strong>Precio unitario:</strong> $${Number(item.precio).toFixed(2)}</p>
                     <p><strong>Total:</strong> $${Number(item.total).toFixed(2)}</p>
                     <button class="remove-item-btn" onclick="removeFromCart(${index})">Eliminar</button>
                 `;
-    
+        
                 cartItemsContainer.appendChild(itemElement);
             });
-    
+        
             cartCount.textContent = totalPiezas;
             cartTotal.textContent = totalGeneral.toFixed(2);
         }
+
+        
     
         function removeFromCart(index) {
             cart.splice(index, 1);
             updateCartUI();
             showToast('Producto eliminado del carrito');
+        }
+        
+        function changeCartQuantity(index, newQuantity) {
+            const cantidad = parseInt(newQuantity);
+        
+            if (isNaN(cantidad) || cantidad < 1) {
+                return;
+            }
+        
+            cart[index].cantidad = cantidad;
+            cart[index].total = cart[index].precio * cart[index].cantidad;
+        
+            updateCartUI();
         }
     
         function clearCart() {
