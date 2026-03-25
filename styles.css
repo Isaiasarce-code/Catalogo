@@ -900,3 +900,22 @@ footer p {
     color: var(--deep);
     font-weight: bold;
 }
+.cart-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0.4rem 0;
+}
+
+.cart-qty-input {
+    width: 70px;
+    padding: 6px 8px;
+    text-align: center;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    color: var(--card-text);
+}
+
