@@ -428,7 +428,7 @@
             }
 
             updateCartUI();
-            showToast(`${product.nombre} (${gramos}) ${cantidad}pz agregado al carrito`);
+            showToast(`${product.nombre} (${gramos}) - ${cantidad} ${cantidad === 1 ? 'pieza agregada' : 'piezas agregadas'} al carrito`);
         }
 
 
