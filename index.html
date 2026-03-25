@@ -103,207 +103,150 @@
     </footer>
 
     <!-- Script para cargar y procesar el archivo CSV -->
+    <s
     <script>
-        let products = []; // Variable global para almacenar productos
+        let products = [];
         let cart = [];
-
+    
         async function loadCSV() {
             try {
                 const response = await fetch('productos.csv');
                 if (!response.ok) {
                     throw new Error(`Error al cargar el archivo CSV: ${response.status}`);
                 }
+    
                 const csvText = await response.text();
-
-                // Usar PapaParse para analizar el CSV
+    
                 Papa.parse(csvText, {
-                    header: true, // Asume que la primera fila contiene los nombres de las columnas
+                    header: true,
                     complete: function(results) {
                         products = results.data.map(product => {
-                            // Limpiar espacios en los nombres de columnas y valores
                             const cleanProduct = {};
+    
                             for (const key in product) {
-                                cleanProduct[key.trim()] = product[key] ? product[key].trim() : ''; // Eliminar espacios
+                                cleanProduct[key.trim()] = product[key] ? product[key].trim() : '';
                             }
-
-                            // Verificar que el producto tenga datos válidos
-                            if (cleanProduct.id && cleanProduct.nombre && cleanProduct.precio) {
-                                cleanProduct.precio = parseFloat(cleanProduct.precio.replace('$', '')); // Convertir precio a número
+    
+                            if (cleanProduct.id && cleanProduct.nombre) {
+                                cleanProduct.precio = cleanProduct.precio
+                                    ? parseFloat(cleanProduct.precio.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.factorCrudo = cleanProduct.factorCrudo
+                                    ? parseFloat(cleanProduct.factorCrudo.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.precio50 = cleanProduct.precio50
+                                    ? parseFloat(cleanProduct.precio50.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.precio125 = cleanProduct.precio125
+                                    ? parseFloat(cleanProduct.precio125.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.precio250 = cleanProduct.precio250
+                                    ? parseFloat(cleanProduct.precio250.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.precio500 = cleanProduct.precio500
+                                    ? parseFloat(cleanProduct.precio500.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
+                                cleanProduct.precio1000 = cleanProduct.precio1000
+                                    ? parseFloat(cleanProduct.precio1000.replace('$', '').replace(/,/g, ''))
+                                    : 0;
+    
                                 return cleanProduct;
                             }
-                        }).filter(Boolean); // Eliminar productos incompletos
-
-                        // Mostrar los productos inicialmente con ordenamiento
+    
+                            return null;
+                        }).filter(Boolean);
+    
                         searchProducts();
                     },
                     error: function(error) {
                         console.error('Error al procesar el CSV:', error);
                     }
                 });
-
+    
             } catch (error) {
                 console.error('Error al cargar el archivo CSV:', error);
             }
         }
-
-        function displayProducts(products) {
+    
+        function displayProducts(productsToDisplay) {
             const catalog = document.getElementById('catalog');
-            catalog.innerHTML = ''; // Limpiar el catálogo existente
-
-            if (products.length === 0) {
+            catalog.innerHTML = '';
+    
+            if (productsToDisplay.length === 0) {
                 catalog.innerHTML = '<p class="no-results">No se encontraron productos que coincidan con su búsqueda.</p>';
                 return;
             }
-
-            products.forEach((product, index) => {
-                // Crear el elemento del producto
+    
+            productsToDisplay.forEach((product) => {
                 const productElement = document.createElement('article');
                 productElement.className = 'product';
-
-                productElement.style.cursor = 'pointer';
-                productElement.addEventListener('click', () => openImageModal(product));
-                
-        function calculateRawPrice(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-        
-            const input = document.getElementById(`peso-crudo-${productId}`);
-            const priceCell = document.getElementById(`precio-crudo-${productId}`);
-        
-            const pesoCrudo = parseFloat(input.value);
-            const factorCrudo = parseFloat(product.factorCrudo);
-        
-            if (isNaN(pesoCrudo) || pesoCrudo <= 0 || isNaN(factorCrudo)) {
-                priceCell.textContent = '$0.00';
-                return;
-            }
-        
-            const total = pesoCrudo * factorCrudo;
-            priceCell.textContent = `$${total.toFixed(2)}`;
-        }
-
-        function addRawToCart(productId) {
-            const product = products.find(p => p.id === productId);
-        
-            if (!product) {
-                alert('Producto no encontrado');
-                return;
-            }
-        
-            const input = document.getElementById(`peso-crudo-${productId}`);
-            const pesoCrudo = parseFloat(input.value);
-            const factorCrudo = parseFloat(product.factorCrudo);
-        
-            if (isNaN(pesoCrudo) || pesoCrudo <= 0) {
-                alert('Ingresa un peso en crudo válido');
-                return;
-            }
-        
-            if (isNaN(factorCrudo)) {
-                alert('No se encontró el factor de precio en crudo para este producto');
-                return;
-            }
-        
-            const total = pesoCrudo * factorCrudo;
-        
-            cart.push({
-                productId: `${productId}-crudo`,
-                nombre: product.nombre,
-                descripcion: product.descripción || '',
-                gramos: `Crudo ${pesoCrudo} kg`,
-                cantidad: 1,
-                precio: total,
-                total: total
-            });
-        
-            updateCartUI();
-            showToast(`${product.nombre} (${pesoCrudo} kg en crudo) agregado al carrito`);
-        }
-                    
-                // Crear contenedor de imagen con placeholder
+    
                 const imageContainer = document.createElement('div');
-                imageContainer.className = 'image-container';
-                
-                // Crear placeholder/skeleton
+                imageContainer.className = 'product-image-container';
+    
                 const imagePlaceholder = document.createElement('div');
                 imagePlaceholder.className = 'image-placeholder';
-                imagePlaceholder.innerHTML = '<div class="loading-spinner"></div>';
-                
+                imagePlaceholder.innerHTML = '<p>Cargando imagen...</p>';
+    
                 const productImage = document.createElement('img');
-                productImage.alt = product.nombre || 'Product';
                 productImage.className = 'product-image';
-                productImage.style.cursor = 'pointer';
-                productImage.decoding = 'async'; // Decodificación asíncrona para mejor rendimiento
-                
-                // Usar lazy loading para imágenes que no están en las primeras 6
-                // Las primeras 6 se cargan inmediatamente para mejor experiencia
-                if (index < 6) {
-                    productImage.loading = 'eager'; // Cargar inmediatamente las primeras
-                    productImage.fetchPriority = 'high'; // Prioridad alta para las primeras imágenes
-                } else {
-                    productImage.loading = 'lazy'; // Lazy loading para el resto
-                }
-                
-                // Función para mostrar la imagen instantáneamente
-                const showImageFast = () => {
-                    // Ocultar placeholder instantáneamente
+                productImage.alt = product.nombre || 'Producto';
+                productImage.loading = 'lazy';
+    
+                function showImageFast() {
                     imagePlaceholder.style.display = 'none';
-                    // Mostrar imagen sin transición - instantáneo
+                    productImage.style.display = 'block';
                     productImage.classList.add('loaded');
                     productImage.style.opacity = '1';
                     productImage.style.transition = 'none';
-                };
-                
-                // Preparar la imagen para carga rápida
+                }
+    
                 productImage.style.opacity = '0';
-                
-                // Manejar cuando la imagen se carga - mostrar inmediatamente
+    
                 productImage.addEventListener('load', function() {
-                    // Mostrar inmediatamente sin esperar frames
                     showImageFast();
                 }, { once: true });
-                
-                // Manejar errores de carga
+    
                 productImage.addEventListener('error', function() {
                     imagePlaceholder.innerHTML = '<p>Imagen no disponible</p>';
                     imagePlaceholder.style.display = 'flex';
                     this.style.display = 'none';
                 }, { once: true });
-                
-                // Establecer el src después de configurar los eventos
-                // Esto permite que el navegador detecte si está en caché
+    
                 productImage.src = `images/product${product.id}.jpg`;
-                
-                // Si la imagen ya está en caché (complete), mostrarla inmediatamente
+    
                 if (productImage.complete) {
                     showImageFast();
                 }
-                
-                // Agregar evento click a la imagen para abrir el modal
-                //productImage.addEventListener('click', () => openImageModal(product));
-                
+    
                 imageContainer.appendChild(imagePlaceholder);
                 imageContainer.appendChild(productImage);
-                
+    
                 productElement.innerHTML = `
                     <h2>${product.nombre || 'Sin nombre'}</h2>
                     <p>${product.descripción || 'No description available'}</p>
-                    <span class="price">$${product.precio.toFixed(2)}</span>
+                    <span class="price">$${Number(product.precio || 0).toFixed(2)}</span>
                 `;
-                
-                // Insertar el contenedor de imagen al principio
+    
                 productElement.insertBefore(imageContainer, productElement.firstChild);
-
+    
+                productElement.addEventListener('click', () => openImageModal(product));
+    
                 catalog.appendChild(productElement);
             });
         }
-
-        
+    
         function openImageModal(product) {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImage');
             const captionText = document.getElementById('modalCaption');
-
+    
             const presentaciones = [
                 { gramos: '50gr', precio: product.precio50 },
                 { gramos: '125gr', precio: product.precio125 },
@@ -311,11 +254,11 @@
                 { gramos: '500gr', precio: product.precio500 },
                 { gramos: '1000gr', precio: product.precio1000 }
             ];
-
+    
             const filasTabla = presentaciones.map((item, index) => `
                 <tr>
                     <td>${item.gramos}</td>
-                    <td>$${item.precio || '-'}</td>
+                    <td>$${Number(item.precio || 0).toFixed(2)}</td>
                     <td>
                         <input 
                             type="number" 
@@ -328,14 +271,14 @@
                     <td>
                         <button 
                             class="table-cart-btn"
-                            onclick="addToCart('${product.id}', '${item.gramos}', '${item.precio}', ${index})"
+                            onclick="event.stopPropagation(); addToCart('${product.id}', '${item.gramos}', '${item.precio}', ${index})"
                         >
                             Agregar
                         </button>
                     </td>
                 </tr>
             `).join('');
-
+    
             const tablaPrecios = `
                 <table class="price-table">
                     <thead>
@@ -351,6 +294,7 @@
                     </tbody>
                 </table>
             `;
+    
             const tablaCrudo = `
                 <table class="raw-price-table">
                     <thead>
@@ -372,13 +316,14 @@
                                     id="peso-crudo-${product.id}" 
                                     class="qty-input"
                                     oninput="calculateRawPrice('${product.id}')"
+                                    onclick="event.stopPropagation()"
                                 >
                             </td>
                             <td id="precio-crudo-${product.id}">$0.00</td>
                             <td>
                                 <button 
                                     class="table-cart-btn"
-                                    onclick="addRawToCart('${product.id}')"
+                                    onclick="event.stopPropagation(); addRawToCart('${product.id}')"
                                 >
                                     Agregar
                                 </button>
@@ -387,8 +332,7 @@
                     </tbody>
                 </table>
             `;
-
-            
+    
             captionText.innerHTML = `
                 <strong>${product.nombre || 'Sin nombre'}</strong>
                 <br>
@@ -397,23 +341,23 @@
                 ${tablaPrecios}
                 <br>
                 ${tablaCrudo}
-            `; 
-
+            `;
+    
             modal.style.display = 'block';
-
+    
             modalImg.style.opacity = '0';
             modalImg.style.display = 'block';
-
+    
             const modalLoadingAnterior = modal.querySelector('.modal-loading');
             if (modalLoadingAnterior) {
                 modalLoadingAnterior.remove();
             }
-
+    
             const modalLoading = document.createElement('div');
             modalLoading.className = 'modal-loading';
             modalLoading.innerHTML = '<div class="loading-spinner"></div>';
             modalImg.parentElement.insertBefore(modalLoading, modalImg);
-
+    
             const tempImg = new Image();
             tempImg.onload = function() {
                 modalImg.src = this.src;
@@ -423,36 +367,103 @@
                     modalLoading.remove();
                 }
             };
+    
             tempImg.onerror = function() {
                 modalImg.style.display = 'none';
                 modalLoading.innerHTML = '<p style="color: white; text-align: center;">Error al cargar la imagen</p>';
             };
+    
             tempImg.src = `images/product${product.id}.jpg`;
         }
-        
-
+    
+        function calculateRawPrice(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+    
+            const input = document.getElementById(`peso-crudo-${productId}`);
+            const priceCell = document.getElementById(`precio-crudo-${productId}`);
+    
+            const pesoCrudo = parseFloat(input.value);
+            const factorCrudo = parseFloat(product.factorCrudo);
+    
+            if (isNaN(pesoCrudo) || pesoCrudo <= 0 || isNaN(factorCrudo) || factorCrudo <= 0) {
+                priceCell.textContent = '$0.00';
+                return;
+            }
+    
+            const total = pesoCrudo * factorCrudo;
+            priceCell.textContent = `$${total.toFixed(2)}`;
+        }
+    
+        function addRawToCart(productId) {
+            const product = products.find(p => p.id === productId);
+    
+            if (!product) {
+                alert('Producto no encontrado');
+                return;
+            }
+    
+            const input = document.getElementById(`peso-crudo-${productId}`);
+            const pesoCrudo = parseFloat(input.value);
+            const factorCrudo = parseFloat(product.factorCrudo);
+    
+            if (isNaN(pesoCrudo) || pesoCrudo <= 0) {
+                alert('Ingresa un peso en crudo válido');
+                return;
+            }
+    
+            if (isNaN(factorCrudo) || factorCrudo <= 0) {
+                alert('No se encontró el factor de precio en crudo para este producto');
+                return;
+            }
+    
+            const total = pesoCrudo * factorCrudo;
+            const presentacion = `Crudo ${pesoCrudo} kg`;
+    
+            const existingItem = cart.find(item =>
+                item.productId === `${productId}-crudo` && item.gramos === presentacion
+            );
+    
+            if (existingItem) {
+                existingItem.cantidad += 1;
+                existingItem.total = existingItem.cantidad * existingItem.precio;
+            } else {
+                cart.push({
+                    productId: `${productId}-crudo`,
+                    nombre: product.nombre,
+                    descripcion: product.descripción || '',
+                    gramos: presentacion,
+                    cantidad: 1,
+                    precio: total,
+                    total: total
+                });
+            }
+    
+            updateCartUI();
+            showToast(`${product.nombre} (${pesoCrudo} kg en crudo) agregado al carrito`);
+        }
+    
         function closeImageModal() {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImage');
             const modalLoading = modal.querySelector('.modal-loading');
-
+    
             if (modalLoading) {
                 modalLoading.remove();
             }
-
+    
             modalImg.src = '';
             modalImg.style.opacity = '0';
             modalImg.style.display = 'block';
             modal.style.display = 'none';
         }
-
+    
         function searchProducts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             const sortBy = document.getElementById('sortSelect').value;
-            
+    
             let filteredProducts = products;
-            
-            // Filtrar productos si hay un término de búsqueda
+    
             if (searchTerm) {
                 filteredProducts = products.filter(product => {
                     const nombre = (product.nombre || '').toLowerCase();
@@ -460,53 +471,51 @@
                     return nombre.includes(searchTerm) || descripcion.includes(searchTerm);
                 });
             }
-            
-            // Ordenar productos
-            let sortedProducts;
+    
+            let sortedProducts = [...filteredProducts];
+    
             if (sortBy === 'nombre') {
-                sortedProducts = [...filteredProducts].sort((a, b) => a.nombre.localeCompare(b.nombre));
+                sortedProducts.sort((a, b) => a.nombre.localeCompare(b.nombre));
             } else if (sortBy === 'precioAscendente') {
-                sortedProducts = [...filteredProducts].sort((a, b) => a.precio - b.precio);
+                sortedProducts.sort((a, b) => (a.precio || 0) - (b.precio || 0));
             } else if (sortBy === 'precioDescendente') {
-                sortedProducts = [...filteredProducts].sort((a, b) => b.precio - a.precio);
-            } else {
-                sortedProducts = filteredProducts;
+                sortedProducts.sort((a, b) => (b.precio || 0) - (a.precio || 0));
             }
-            
+    
             displayProducts(sortedProducts);
         }
-
+    
         function sortProducts() {
-            searchProducts(); // Usar la función de búsqueda que también ordena
+            searchProducts();
         }
-
+    
         function addToCart(productId, gramos, precio, index) {
             const product = products.find(p => p.id === productId);
-
+    
             if (!product) {
                 alert('Producto no encontrado');
                 return;
             }
-
+    
             const inputCantidad = document.getElementById(`cantidad-${productId}-${index}`);
             const cantidad = parseInt(inputCantidad.value);
-
+    
             if (!cantidad || cantidad < 1) {
                 alert('Ingresa una cantidad válida');
                 return;
             }
-
+    
             const precioUnitario = parseFloat(precio);
-
+    
             if (isNaN(precioUnitario)) {
                 alert('Precio no válido');
                 return;
             }
-
-            const existingItem = cart.find(item => 
+    
+            const existingItem = cart.find(item =>
                 item.productId === productId && item.gramos === gramos
             );
-
+    
             if (existingItem) {
                 existingItem.cantidad += cantidad;
                 existingItem.total = existingItem.cantidad * existingItem.precio;
@@ -521,89 +530,88 @@
                     total: cantidad * precioUnitario
                 });
             }
-
+    
             updateCartUI();
             showToast(`${product.nombre} (${gramos}) - ${cantidad} ${cantidad === 1 ? 'pieza agregada' : 'piezas agregadas'} al carrito`);
         }
-
-
+    
         function updateCartUI() {
             const cartItemsContainer = document.getElementById('cartItems');
             const cartCount = document.getElementById('cartCount');
             const cartTotal = document.getElementById('cartTotal');
-
+    
             cartItemsContainer.innerHTML = '';
-
+    
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = '<p class="empty-cart">Tu carrito está vacío.</p>';
                 cartCount.textContent = '0';
                 cartTotal.textContent = '0';
                 return;
             }
-
+    
             let totalGeneral = 0;
-
+            let totalPiezas = 0;
+    
             cart.forEach((item, index) => {
                 totalGeneral += item.total;
-
+                totalPiezas += item.cantidad;
+    
                 const itemElement = document.createElement('div');
                 itemElement.className = 'cart-item';
-
+    
                 itemElement.innerHTML = `
                     <h4>${item.nombre}</h4>
                     <p><strong>Presentación:</strong> ${item.gramos}</p>
                     <p><strong>Cantidad:</strong> ${item.cantidad}</p>
-                    <p><strong>Precio unitario:</strong> $${item.precio}</p>
-                    <p><strong>Total:</strong> $${item.total}</p>
+                    <p><strong>Precio unitario:</strong> $${Number(item.precio).toFixed(2)}</p>
+                    <p><strong>Total:</strong> $${Number(item.total).toFixed(2)}</p>
                     <button class="remove-item-btn" onclick="removeFromCart(${index})">Eliminar</button>
                 `;
-
+    
                 cartItemsContainer.appendChild(itemElement);
             });
-
-            cartCount.textContent = cart.length;
+    
+            cartCount.textContent = totalPiezas;
             cartTotal.textContent = totalGeneral.toFixed(2);
         }
-
+    
         function removeFromCart(index) {
             cart.splice(index, 1);
             updateCartUI();
+            showToast('Producto eliminado del carrito');
         }
-
+    
         function clearCart() {
             cart = [];
             updateCartUI();
+            showToast('Carrito vaciado');
         }
-
-
+    
         function openOrderSummary() {
             const modal = document.getElementById('orderSummaryModal');
             const summaryContent = document.getElementById('summaryContent');
-
+    
             if (cart.length === 0) {
-                summaryContent.innerHTML = `
-                    <p class="empty-summary">Tu carrito está vacío.</p>
-                `;
+                summaryContent.innerHTML = `<p class="empty-summary">Tu carrito está vacío.</p>`;
                 modal.style.display = 'flex';
                 return;
             }
-
+    
             let totalGeneral = 0;
-
+    
             const rows = cart.map(item => {
                 totalGeneral += item.total;
-
                 return `
                     <tr>
                         <td>${item.nombre}</td>
                         <td>${item.gramos}</td>
                         <td>${item.cantidad}</td>
-                        <td>$${item.precio.toFixed(2)}</td>
-                        <td>$${item.total.toFixed(2)}</td>
+                        <td>$${Number(item.precio).toFixed(2)}</td>
+                        <td>$${Number(item.total).toFixed(2)}</td>
                     </tr>
                 `;
             }).join('');
-
+    
             summaryContent.innerHTML = `
                 <div class="summary-table-wrapper">
                     <table class="summary-table">
@@ -628,138 +636,111 @@
                     </table>
                 </div>
             `;
-
+    
             modal.style.display = 'flex';
         }
-
-
-
+    
         function closeOrderSummary() {
             document.getElementById('orderSummaryModal').style.display = 'none';
         }
-
+    
         function clearCartFromSummary() {
             clearCart();
             closeOrderSummary();
             showToast('Carrito vaciado');
         }
-
-
+    
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
-
+    
             clearTimeout(toast._timeout);
             toast._timeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 2200);
         }
-
+    
         function openCart() {
             document.getElementById('cartSidebar').classList.add('open');
         }
-
+    
         function closeCart() {
             document.getElementById('cartSidebar').classList.remove('open');
         }
-
+    
         function generateOrderText() {
             if (cart.length === 0) {
                 return encodeURIComponent('Hola, quiero hacer un pedido, pero el carrito está vacío.');
             }
-
+    
             let totalGeneral = 0;
             let message = 'Hola, quiero hacer el siguiente pedido:\n\n';
-
+    
             cart.forEach((item, index) => {
                 totalGeneral += item.total;
-
+    
                 message += `${index + 1}. ${item.nombre} - ${item.gramos}\n`;
                 message += `Cantidad: ${item.cantidad}\n`;
-                message += `Precio unitario: $${item.precio.toFixed(2)}\n`;
-                message += `Total: $${item.total.toFixed(2)}\n\n`;
+                message += `Precio unitario: $${Number(item.precio).toFixed(2)}\n`;
+                message += `Total: $${Number(item.total).toFixed(2)}\n\n`;
             });
-
+    
             message += `Total general: $${totalGeneral.toFixed(2)}`;
-
+    
             return encodeURIComponent(message);
         }
-
+    
         function sendOrderWhatsApp() {
             if (cart.length === 0) {
                 alert('Tu carrito está vacío');
                 return;
             }
-
-            const phoneNumber = '5214425624506'; 
+    
+            const phoneNumber = '5214425624506';
             const message = generateOrderText();
             const url = `https://wa.me/${phoneNumber}?text=${message}`;
-
+    
             window.open(url, '_blank');
         }
-
-        // Esperar a que el DOM esté cargado antes de agregar event listeners
+    
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('sortSelect').addEventListener('change', sortProducts);
             document.getElementById('searchButton').addEventListener('click', searchProducts);
+    
             document.getElementById('searchInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchProducts();
                 }
             });
+    
             document.getElementById('searchInput').addEventListener('input', searchProducts);
-
-            document.querySelector('.close').addEventListener('click', closeImageModal);
-
-            document.getElementById('imageModal').addEventListener('click', function(e) {
-                if (e.target === this) {
+    
+            const closeBtn = document.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeImageModal);
+            }
+    
+            const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+            if (closeSummaryBtn) {
+                closeSummaryBtn.addEventListener('click', closeOrderSummary);
+            }
+    
+            window.addEventListener('click', function(event) {
+                const imageModal = document.getElementById('imageModal');
+                const summaryModal = document.getElementById('orderSummaryModal');
+    
+                if (event.target === imageModal) {
                     closeImageModal();
                 }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeImageModal();
+    
+                if (event.target === summaryModal) {
                     closeOrderSummary();
                 }
             });
-
-            document.getElementById('closeSummaryBtn').addEventListener('click', closeOrderSummary);
-
-            document.getElementById('orderSummaryModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeOrderSummary();
-                }
-            });
-
-
-
-            document.getElementById('cartButton').addEventListener('click', openCart);
-            document.getElementById('closeCart').addEventListener('click', closeCart);
-
-            updateCartUI();
+    
             loadCSV();
-
-            let touchStartY = 0;
-            let touchEndY = 0;
-
-            const imageModal = document.getElementById('imageModal');
-
-            imageModal.addEventListener('touchstart', function(e) {
-                touchStartY = e.changedTouches[0].screenY;
-            }, { passive: true });
-
-            imageModal.addEventListener('touchend', function(e) {
-                touchEndY = e.changedTouches[0].screenY;
-
-                if (touchEndY - touchStartY > 120) {
-                    closeImageModal();
-                }
-            }, { passive: true });
         });
-
-
     </script>
 </body>
 </html>
